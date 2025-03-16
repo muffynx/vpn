@@ -39,7 +39,7 @@ Supported distros are Ubuntu, Debian, AlmaLinux, Rocky Linux, CentOS and Fedora.
 fi
 
 if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
-	echo "Ubuntu 22.04 or higher is required to use this installer.
+	echo "Ubuntu 20.04 or higher is required to use this installer.
 This version of Ubuntu is too old and unsupported."
 	exit
 fi
@@ -459,9 +459,23 @@ verb 3" > /etc/openvpn/server/client-common.txt
 	echo
 	echo "Finished!"
 	echo
-	echo "The client configuration is available in:" "$script_dir"/"$client.ovpn"
-    echo "linkdowload in:" /"$client.ovpn"
-	echo "New clients can be added by running this script again."
+    mkdir -p /var/www/html/openvpn
+    # คัดลอกไฟล์ .ovpn ที่สร้างจาก OpenVPN ไปยังไดเรกทอรีของ Apache
+    cp "$script_dir"/"$client.ovpn" /var/www/html/openvpn/
+    # ตั้งค่า Apache2 ให้สามารถเข้าถึงไฟล์นี้
+    chmod 755 /var/www/html/openvpn/"$client.ovpn"
+    # แจ้งให้ผู้ใช้รู้ว่าไฟล์พร้อมให้ดาวน์โหลดที่ไหน
+    echo "The client configuration is available in: $script_dir/$client.ovpn"
+    echo "Link to download: http://$ip:81/openvpn/$client.ovpn"
+
+
+
+    # แสดงข้อความการทำงานเสร็จสิ้น
+    echo "Client configuration file is ready for download."
+
+
+
+
 else
 	clear
 	echo "OpenVPN is already installed."
