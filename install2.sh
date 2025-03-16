@@ -38,8 +38,8 @@ Supported distros are Ubuntu, Debian, AlmaLinux, Rocky Linux, CentOS and Fedora.
 	exit
 fi
 
-if [[ "$os" == "ubuntu" && "$os_version" -lt 2204 ]]; then
-	echo "Ubuntu 22.04 or higher is required to use this installer.
+if [[ "$os" == "ubuntu" && "$os_version" -lt 2004 ]]; then
+	echo "Ubuntu 20.04 or higher is required to use this installer.
 This version of Ubuntu is too old and unsupported."
 	exit
 fi
@@ -128,7 +128,7 @@ if [[ ! -e /etc/openvpn/server/server.conf ]]; then
 		[[ -z "$ip_number" ]] && ip_number="1"
 		ip=$(ip -4 addr | grep inet | grep -vE '127(\.[0-9]{1,3}){3}' | cut -d '/' -f 1 | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sed -n "$ip_number"p)
 	fi
-	# If $ip is a private IP address, the server must be behind NAT
+	# If $ip is a private IP address, the server must be behind NAT
 	if echo "$ip" | grep -qE '^(10\.|172\.1[6789]\.|172\.2[0-9]\.|172\.3[01]\.|192\.168)'; then
 		echo
 		echo "This server is behind NAT. What is the public IPv4 address or hostname?"
@@ -459,7 +459,6 @@ verb 3" > /etc/openvpn/server/client-common.txt
 	echo
 	echo "Finished!"
 	echo
-	echo
     mkdir -p /var/www/html/openvpn
     # คัดลอกไฟล์ .ovpn ที่สร้างจาก OpenVPN ไปยังไดเรกทอรีของ Apache
     cp "$script_dir"/"$client.ovpn" /var/www/html/openvpn/
@@ -468,6 +467,15 @@ verb 3" > /etc/openvpn/server/client-common.txt
     # แจ้งให้ผู้ใช้รู้ว่าไฟล์พร้อมให้ดาวน์โหลดที่ไหน
     echo "The client configuration is available in: $script_dir/$client.ovpn"
     echo "Link to download: http://$ip:81/openvpn/$client.ovpn"
+
+
+
+    # แสดงข้อความการทำงานเสร็จสิ้น
+    echo "Client configuration file is ready for download."
+
+
+
+
 else
 	clear
 	echo "OpenVPN is already installed."
