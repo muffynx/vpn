@@ -438,7 +438,7 @@ WantedBy=multi-user.target" >> /etc/systemd/system/openvpn-iptables.service
 		semanage port -a -t openvpn_port_t -p "$protocol" "$port"
 	fi
 	# If the server is behind NAT, use the correct IP address
-	[[ -n "$public_ip" ]] && ip="$public_ip"
+	[[ -n "$public_ip" ]] && ip=$(hostname -I | awk '{print $1}')
 	# client-common.txt is created so we have a template to add further users later
 	echo "client
 dev tun
@@ -485,7 +485,7 @@ else
 	case "$option" in
 		1)
 			echo
-			remote $ip $port
+			
 			echo "Provide a name for the client:"
 			read -p "Name: " unsanitized_client
 			client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
