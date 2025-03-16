@@ -485,6 +485,7 @@ else
 	case "$option" in
 		1)
 			echo
+			remote $ip $port
 			echo "Provide a name for the client:"
 			read -p "Name: " unsanitized_client
 			client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
