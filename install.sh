@@ -270,11 +270,26 @@ LimitNPROC=infinity" > /etc/systemd/system/openvpn-server@server.service.d/disab
 	chown -R root:root /etc/openvpn/server/easy-rsa/
 	cd /etc/openvpn/server/easy-rsa/
 	# Create the PKI, set up the CA and the server and client certificates
+	read -p "Enter the expiration date for the certificate (in days, e.g., 3650): " expiry_days
+	if [[ -z "$expiry_days" || ! "$expiry_days" =~ ^[0-9]+$ ]]; then
+    	echo "Invalid input. Using default expiration of 3650 days."
+    	expiry_days=3650  # Default to 3650 days if no valid input
+	fi
+
+	# Initialize the Public Key Infrastructure (PKI)
 	./easyrsa --batch init-pki
+
+	# Build the Certificate Authority (CA)
 	./easyrsa --batch build-ca nopass
-	./easyrsa --batch --days=3650 build-server-full server nopass
-	./easyrsa --batch --days=3650 build-client-full "$client" nopass
-	./easyrsa --batch --days=3650 gen-crl
+
+	# Build the server certificate (valid for the specified number of days)
+	./easyrsa --batch --days=$expiry_days build-server-full server nopass
+
+	# Build the client certificate (valid for the specified number of days)
+	./easyrsa --batch --days=$expiry_days build-client-full "$client" nopass
+
+	# Generate a Certificate Revocation List (CRL)
+	./easyrsa --batch --days=$expiry_days gen-crl
 	# Move the stuff we need
 	cp pki/ca.crt pki/private/ca.key pki/issued/server.crt pki/private/server.key pki/crl.pem /etc/openvpn/server
 	# CRL is read with each client connection, while OpenVPN is dropped to nobody
@@ -438,13 +453,9 @@ WantedBy=multi-user.target" >> /etc/systemd/system/openvpn-iptables.service
 		semanage port -a -t openvpn_port_t -p "$protocol" "$port"
 	fi
 	# If the server is behind NAT, use the correct IP address
-	[[ -n "$public_ip" ]] && ip=$(hostname -I | awk '{print $1}')
+	[[ -n "$public_ip" ]] && ip="$public_ip"
 	# client-common.txt is created so we have a template to add further users later
-	ip1=$(hostname -I | awk '{print $1}')
-	ip2=$(curl -s http://ipinfo.io/ip)
 	echo "client
-
-
 dev tun
 proto $protocol
 remote $ip $port
@@ -471,7 +482,7 @@ verb 3" > /etc/openvpn/server/client-common.txt
     chmod 755 /var/www/html/openvpn/"$client.ovpn"
     # แจ้งให้ผู้ใช้รู้ว่าไฟล์พร้อมให้ดาวน์โหลดที่ไหน
     echo "The client configuration is available in: $script_dir/$client.ovpn"
-    echo "Link to download: http://$ip1:81/openvpn/$client.ovpn"
+    echo "Link to download: http://$ip:81/openvpn/$client.ovpn"
 else
 	clear
 	echo "OpenVPN is already installed."
@@ -489,7 +500,6 @@ else
 	case "$option" in
 		1)
 			echo
-			
 			echo "Provide a name for the client:"
 			read -p "Name: " unsanitized_client
 			client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
@@ -499,7 +509,11 @@ else
 				client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
 			done
 			cd /etc/openvpn/server/easy-rsa/
-			./easyrsa --batch --days=3650 build-client-full "$client" nopass
+				if [[ -z "$expiry_days1" || ! "$expiry_days1" =~ ^[0-9]+$ ]]; then
+    				echo "Invalid input. Using default expiration of 3650 days."
+    				expiry_days1=3650  # Default to 3650 days if no valid input
+				fi
+			./easyrsa --batch --days=$expiry_days1 build-client-full "$client" nopass
 			# Generates the custom client.ovpn
 			new_client
 			echo
@@ -510,7 +524,7 @@ else
     		chmod 755 /var/www/html/openvpn/"$client.ovpn"
     		# แจ้งให้ผู้ใช้รู้ว่าไฟล์พร้อมให้ดาวน์โหลดที่ไหน
     		echo "The client configuration is available in: $script_dir/$client.ovpn"
-    		echo "Link to download: http://$ip2:81/openvpn/$client.ovpn"
+    		echo "Link to download: http://$ip:81/openvpn/$client.ovpn"
 			exit
 		;;
 		2)
