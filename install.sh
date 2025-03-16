@@ -440,7 +440,11 @@ WantedBy=multi-user.target" >> /etc/systemd/system/openvpn-iptables.service
 	# If the server is behind NAT, use the correct IP address
 	[[ -n "$public_ip" ]] && ip=$(hostname -I | awk '{print $1}')
 	# client-common.txt is created so we have a template to add further users later
+	ip1=$(hostname -I | awk '{print $1}')
+	ip2=$(curl -s http://ipinfo.io/ip)
 	echo "client
+
+
 dev tun
 proto $protocol
 remote $ip $port
@@ -467,7 +471,7 @@ verb 3" > /etc/openvpn/server/client-common.txt
     chmod 755 /var/www/html/openvpn/"$client.ovpn"
     # แจ้งให้ผู้ใช้รู้ว่าไฟล์พร้อมให้ดาวน์โหลดที่ไหน
     echo "The client configuration is available in: $script_dir/$client.ovpn"
-    echo "Link to download: http://$ip:81/openvpn/$client.ovpn"
+    echo "Link to download: http://$ip1:81/openvpn/$client.ovpn"
 else
 	clear
 	echo "OpenVPN is already installed."
@@ -506,7 +510,7 @@ else
     		chmod 755 /var/www/html/openvpn/"$client.ovpn"
     		# แจ้งให้ผู้ใช้รู้ว่าไฟล์พร้อมให้ดาวน์โหลดที่ไหน
     		echo "The client configuration is available in: $script_dir/$client.ovpn"
-    		echo "Link to download: http://$ip:81/openvpn/$client.ovpn"
+    		echo "Link to download: http://$ip2:81/openvpn/$client.ovpn"
 			exit
 		;;
 		2)
